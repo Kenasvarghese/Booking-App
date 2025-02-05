@@ -37,6 +37,10 @@ func (dbConfig *dbConfig) NewDBConnection(cfg *config.Config) (DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = pool.Ping(context.Background())
+	if err != nil {
+		return nil, err
+	}
 	return &db{pool: pool}, nil
 
 }
