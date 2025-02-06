@@ -1,0 +1,32 @@
+version: '3.9'
+networks:
+  bookingapp-v1:
+volumes:
+  postgres-data:
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    container_name: postgres-bookingapp
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    networks:
+      - bookingapp-v1
+    ports:
+      - 6004:5432
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'pg_isready',
+          '-d',
+          '${DB_NAME}',
+          '-U',
+          '${DB_USER}',
+        ]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 5

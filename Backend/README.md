@@ -13,16 +13,22 @@ Go to the project directory
   cd Booking-App/Backend
 ```
 
-Start the server
+Run postgres instance
 
 ```bash
-  go run main.go
+  docker compose up
 ```
+
 Run migration
 
 ```bash
   goose up
 ```
-<em><strong>NOTE:</strong> You need to run a postgres instance locally and provid credentials in the env </em>
+
+Start the server
+
+```bash
+  go run main.go
+```
 
      
