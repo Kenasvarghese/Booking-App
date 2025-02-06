@@ -4,9 +4,6 @@ SELECT 'up SQL query';
 -- +goose StatementEnd
 BEGIN;
 
-SET search_path TO bookingapp;
-
-
 CREATE TABLE users(
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -40,15 +37,14 @@ SELECT 'down SQL query';
 -- +goose StatementEnd
 BEGIN;
 
-DROP SCHEMA IF EXISTS bookingapp;
 
-DROP TABLE IF EXISTS users;
-
-DROP TABLE IF EXISTS properties;
+DROP TABLE IF EXISTS bookings;
 
 DROP TABLE IF EXISTS rooms;
 
-DROP TABLE IF EXISTS bookings;
+DROP TABLE IF EXISTS properties;
+
+DROP TABLE IF EXISTS users;
 
 COMMIT;
 
