@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Kenasvarghese/Booking-App/Backend/config"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -16,7 +17,8 @@ type db struct {
 	pool *pgxpool.Pool
 }
 type DB interface {
-	Execute(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
+	Query(ctx context.Context, sql string, arguments ...any) (pgx.Rows, error)
 }
 
 func LoadDB(cfg *config.Config) DB {
@@ -45,6 +47,10 @@ func (dbConfig *dbConfig) NewDBConnection(cfg *config.Config) (DB, error) {
 
 }
 
-func (db *db) Execute(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
+func (db *db) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
 	return db.pool.Exec(ctx, sql, arguments...)
+}
+
+func (db *db) Query(ctx context.Context, sql string, arguments ...any) (pgx.Rows, error) {
+	return db.pool.Query(ctx, sql, arguments...)
 }

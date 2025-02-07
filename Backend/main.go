@@ -6,21 +6,23 @@ import (
 
 	"github.com/Kenasvarghese/Booking-App/Backend/config"
 	"github.com/Kenasvarghese/Booking-App/Backend/database"
+	propertiesHandler "github.com/Kenasvarghese/Booking-App/Backend/properties/handler"
+	propertiesRepo "github.com/Kenasvarghese/Booking-App/Backend/properties/repo"
+	propertiesUsecase "github.com/Kenasvarghese/Booking-App/Backend/properties/usecase"
+
 	userHandler "github.com/Kenasvarghese/Booking-App/Backend/users/handler"
-	"github.com/go-chi/chi/v5"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
 	cfg := config.LoadConfig()
 	db := database.LoadDB(cfg)
-	r := chi.NewRouter()
-	apiRouter := chi.NewRouter()
-	apiRouter.Group(func(r chi.Router) {
-		privateRoutes(r.(*chi.Mux), db)
-	})
-	println("/" + cfg.BasePath)
-	r.Mount("/"+cfg.BasePath, apiRouter)
-	server := &http.Server{
+	r := mux.NewRouter()
+	apiRouter := r.PathPrefix("/" + cfg.BasePath).Subrouter()
+	privateRoutes(apiRouter, db)
+
+	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.ServerPort),
 		Handler: r,
 	}
@@ -28,6 +30,9 @@ func main() {
 	server.ListenAndServe()
 
 }
-func privateRoutes(r *chi.Mux, db database.DB) {
+func privateRoutes(r *mux.Router, db database.DB) {
+	pRepo := propertiesRepo.NewPropertiesRepo(db)
+	pUsecase := propertiesUsecase.NewPropertiesUsecaseHandler(pRepo)
+	propertiesHandler.NewPropertiesHandler(r, pUsecase)
 	userHandler.NewUserHandler(r)
 }
