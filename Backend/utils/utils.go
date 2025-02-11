@@ -3,8 +3,11 @@ package utils
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/go-playground/validator"
 )
 
+// writes a success response to the response writer
 func ApiSuccessResponse(w http.ResponseWriter, data any) {
 	response := struct {
 		Success bool `json:"success"`
@@ -27,6 +30,7 @@ func ApiSuccessResponse(w http.ResponseWriter, data any) {
 	w.Write(databyte)
 }
 
+// writes an error response to the response writer
 func ApiErrorResponse(w http.ResponseWriter, status int, err error) {
 	response := struct {
 		Success bool `json:"success"`
@@ -47,4 +51,10 @@ func ApiErrorResponse(w http.ResponseWriter, status int, err error) {
 	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(databyte)
+}
+
+// validates structs
+func Validate(v any) error {
+	validator := validator.New()
+	return validator.Struct(v)
 }
