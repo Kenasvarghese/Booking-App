@@ -19,6 +19,7 @@ type db struct {
 type DB interface {
 	Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error)
 	Query(ctx context.Context, sql string, arguments ...any) (pgx.Rows, error)
+	QueryRow(ctx context.Context, sql string, arguments ...any) pgx.Row
 }
 
 func LoadDB(cfg *config.Config) DB {
@@ -53,4 +54,8 @@ func (db *db) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.Co
 
 func (db *db) Query(ctx context.Context, sql string, arguments ...any) (pgx.Rows, error) {
 	return db.pool.Query(ctx, sql, arguments...)
+}
+
+func (db *db) QueryRow(ctx context.Context, sql string, arguments ...any) pgx.Row {
+	return db.pool.QueryRow(ctx, sql, arguments...)
 }
