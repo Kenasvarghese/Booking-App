@@ -26,7 +26,7 @@ func NewPropertiesHandler(r *mux.Router, propertiesUsecase domain.PropertiesUsec
 func (h *propertiesHandler) ListProperties(w http.ResponseWriter, r *http.Request) {
 	properties, err := h.propertiesUsecase.ListAllProperties(context.Background())
 	if err != nil {
-		utils.ApiErrorResponse(w, http.StatusInternalServerError, err)
+		utils.ApiErrorResponse(w, http.StatusInternalServerError, "", err)
 	}
 	propertiesDto := make([]domain.PropertyDTO, 0)
 	for _, property := range properties {
@@ -41,19 +41,18 @@ func (h *propertiesHandler) ListProperties(w http.ResponseWriter, r *http.Reques
 // AddProperty handler for adding new property
 func (h *propertiesHandler) AddProperty(w http.ResponseWriter, r *http.Request) {
 	var addPropertyDto domain.AddPropertyDTO
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&addPropertyDto)
+	err := json.NewDecoder(r.Body).Decode(&addPropertyDto)
 	if err != nil {
-		utils.ApiErrorResponse(w, http.StatusBadRequest, err)
+		utils.ApiErrorResponse(w, http.StatusBadRequest, "", err)
 	}
 	err = utils.Validate(addPropertyDto)
 	if err != nil {
-		utils.ApiErrorResponse(w, http.StatusBadRequest, err)
+		utils.ApiErrorResponse(w, http.StatusBadRequest, "", err)
 	}
 
 	id, err := h.propertiesUsecase.AddProperty(context.Background(), addPropertyDto)
 	if err != nil {
-		utils.ApiErrorResponse(w, http.StatusInternalServerError, err)
+		utils.ApiErrorResponse(w, http.StatusInternalServerError, "", err)
 	}
 	utils.ApiSuccessResponse(w, struct {
 		Id uint64 `json:"id"`

@@ -20,6 +20,9 @@ CREATE TABLE properties (
 
 CREATE TABLE rooms(
     id SERIAL PRIMARY KEY,
+    room_type VARCHAR(255) NOT NULL,
+    bed_type VARCHAR(255) NOT NULL,
+    rent INTEGER NOT NULL,
     property_id INTEGER REFERENCES properties(id) ON DELETE CASCADE 
 );
 

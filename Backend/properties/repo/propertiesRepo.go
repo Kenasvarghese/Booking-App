@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Kenasvarghese/Booking-App/Backend/database"
 	"github.com/Kenasvarghese/Booking-App/Backend/domain"
@@ -18,7 +19,7 @@ func NewPropertiesRepo(db database.DB) domain.PropertiesRepo {
 	}
 }
 
-var (
+const (
 	queryAddProperty = `
 	INSERT INTO properties
 	(name,room_count,address)
@@ -55,13 +56,13 @@ func (r *propertiesRepo) ListAllProperties(ctx context.Context) ([]domain.Proper
 			&dao.RoomCount,
 			&dao.Address,
 		); err != nil {
-			return []domain.Property{}, err
+			return []domain.Property{}, fmt.Errorf("ListAllProperties - rows scan returned with err %w", err)
 		}
 		dao.MapToDomain(&property)
 		properties = append(properties, property)
 	}
 	if rows.Err() != nil {
-		return []domain.Property{}, err
+		return []domain.Property{}, fmt.Errorf("ListAllProperties - rows returned with err %w", rows.Err())
 	}
 	return properties, nil
 }
@@ -73,7 +74,7 @@ func (r *propertiesRepo) AddProperty(ctx context.Context, property domain.Proper
 
 	err := r.db.QueryRow(ctx, query, property.Name, property.RoomCount, property.Address).Scan(&id)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("AddProperty QueryRow returned with err %w", err)
 	}
 	return uint64(id.Int32), nil
 }
