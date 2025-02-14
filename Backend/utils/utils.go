@@ -31,12 +31,14 @@ func ApiSuccessResponse(w http.ResponseWriter, data any) {
 }
 
 // writes an error response to the response writer
-func ApiErrorResponse(w http.ResponseWriter, status int, err error) {
+func ApiErrorResponse(w http.ResponseWriter, status int, msg string, err error) {
 	response := struct {
-		Success bool `json:"success"`
-		Error   any  `json:"error"`
+		Success bool   `json:"success"`
+		Message string `json:"mesasge,omitempty"`
+		Error   any    `json:"error,omitempty"`
 	}{
 		Success: false,
+		Message: msg,
 		Error:   err,
 	}
 	databyte, err := json.Marshal(response)
