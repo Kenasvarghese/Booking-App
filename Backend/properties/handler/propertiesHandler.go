@@ -26,7 +26,8 @@ func NewPropertiesHandler(r *mux.Router, propertiesUsecase domain.PropertiesUsec
 func (h *propertiesHandler) ListProperties(w http.ResponseWriter, r *http.Request) {
 	properties, err := h.propertiesUsecase.ListAllProperties(context.Background())
 	if err != nil {
-		utils.ApiErrorResponse(w, http.StatusInternalServerError, err.Error() )
+		utils.ApiErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 	propertiesDto := make([]domain.PropertyDTO, 0)
 	for _, property := range properties {
@@ -54,7 +55,7 @@ func (h *propertiesHandler) AddProperty(w http.ResponseWriter, r *http.Request) 
 
 	id, err := h.propertiesUsecase.AddProperty(context.Background(), addPropertyDto)
 	if err != nil {
-		utils.ApiErrorResponse(w, http.StatusInternalServerError, err.Error(),)
+		utils.ApiErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	utils.ApiSuccessResponse(w, struct {

@@ -46,7 +46,7 @@ const (
 )
 
 func (r *roomsRepo) GetRoomsByPropertyID(ctx context.Context, propertyIDs []uint64) ([]domain.Room, error) {
-	rows, err := r.db.Query(ctx, queryGetRoomsByPropertyID, []uint32{1})
+	rows, err := r.db.Query(ctx, queryGetRoomsByPropertyID, propertyIDs)
 	if err != nil {
 		return []domain.Room{}, fmt.Errorf("GetRoomsByPropertyID - Query returned with err %w", err)
 	}
