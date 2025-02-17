@@ -6,6 +6,7 @@ import (
 
 	"github.com/Kenasvarghese/Booking-App/Backend/database"
 	"github.com/Kenasvarghese/Booking-App/Backend/domain"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type roomsRepo struct {
@@ -19,6 +20,17 @@ func NewRoomsRepo(db database.DB) domain.RoomsRepo {
 }
 
 const (
+	queryAddRoom = `
+	INSERT INTO rooms(
+		room_type,
+		bed_type,
+		rent,
+		property_id
+	)
+	VALUES($1, $2, $3, $4)
+	RETURNING id
+	`
+
 	queryGetRoomsByPropertyID = `
 	SELECT 
 		id,
@@ -29,12 +41,12 @@ const (
 	FROM
 		rooms
 	WHERE 
-		property_id IN ($1)
+		property_id = ANY($1)
 	`
 )
 
-func (r *roomsRepo) GetRoomsByPropertyID(ctx context.Context, propertyID uint64) ([]domain.Room, error) {
-	rows, err := r.db.Query(ctx, queryGetRoomsByPropertyID, propertyID)
+func (r *roomsRepo) GetRoomsByPropertyID(ctx context.Context, propertyIDs []uint64) ([]domain.Room, error) {
+	rows, err := r.db.Query(ctx, queryGetRoomsByPropertyID, propertyIDs)
 	if err != nil {
 		return []domain.Room{}, fmt.Errorf("GetRoomsByPropertyID - Query returned with err %w", err)
 	}
@@ -56,4 +68,13 @@ func (r *roomsRepo) GetRoomsByPropertyID(ctx context.Context, propertyID uint64)
 		return []domain.Room{}, fmt.Errorf("GetRoomsByPropertyID - rows returned with err %w", rows.Err())
 	}
 	return rooms, nil
+}
+
+func (r *roomsRepo) AddRoom(ctx context.Context, room domain.Room) (uint64, error) {
+	var pgid pgtype.Int4
+	err := r.db.QueryRow(ctx, queryAddRoom, room.RoomType, room.BedType, room.Rent, room.PropertyID).Scan(&pgid)
+	if err != nil {
+		return 0, fmt.Errorf("AddRoom - QueryRow returned with err %w", err)
+	}
+	return uint64(pgid.Int32), nil
 }
