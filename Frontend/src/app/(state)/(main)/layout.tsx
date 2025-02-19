@@ -6,7 +6,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  console.log("test");
 
   return (
     <div className="min-h-screen flex flex-col">
