@@ -1,28 +1,33 @@
-export const httpRequest = (
-    url: string,
-    body?: BodyInit | null | undefined,
-    method?: string,
-    cache?: RequestCache,
-    headers: any = {}
-  ) => {
-    return fetch(`api/${url}`, {
-      method: method || "GET",
-      body: body,
+export const httpRequest = async (
+  url: string,
+  body?: BodyInit | null,
+  method: string = "GET",
+  cache: RequestCache = "no-store",
+  headers: Record<string, string> = {}
+): Promise<{ success: boolean; data?: any; message?: string; error?: any }> => {
+  try {
+    const response = await fetch(`http://localhost:8080/api/${url}`, {
+      method,
+      body: body && method !== "GET" ? body : null,
       headers: {
+        "Content-Type": "application/json",
         ...headers,
       },
-      cache: cache || "no-store",
-    })
-      .then((response) => {
-        //todo: handle custom error cases
-        return response.json();
-      })
-      .catch((error: any) => {
-        return {
-          success: false,
-          message: "An error occurred:",
-          error: error,
-        };
-      });
-  };
-  
+      cache,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP Error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return {
+      success: false,
+      message: "An error occurred while making the request.",
+      error: error instanceof Error ? error.message : error,
+    };
+  }
+};

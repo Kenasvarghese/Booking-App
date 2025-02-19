@@ -1,32 +1,29 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Calendar } from "@/components/ui/calendar";
 import { DateRange } from "react-day-picker";
 import { addDays } from "date-fns";
 import { BookingModal } from "./components/booking-modal";
 import SuccessModal from "@/components/ui/SuccessModal";
+import { httpRequest } from "@/components/api/HTTP_Handler";
+import { API_ROUTES } from "@/components/consts/endpoints";
 
-const properties = [
-  {
-    id: 1,
-    name: "Dragster Homes",
-    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945",
-  },
-  {
-    id: 2,
-    name: "Poolvilla",
-    image: "https://images.unsplash.com/photo-1582719508461-905c673771fd",
-  },
-  {
-    id: 3,
-    name: "Tent Stay",
-    image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb",
-  },
-];
+interface Property {
+  id: number;
+  name: string;
+  image: string;
+}
 
-const rooms = [
+interface Room {
+  id: number;
+  number: string;
+  status: string;
+  type: string;
+}
+
+const rooms: Room[] = [
   { id: 1, number: "101", status: "available", type: "Deluxe" },
   { id: 2, number: "102", status: "booked", type: "Suite" },
   { id: 3, number: "103", status: "pending", type: "Standard" },
@@ -36,10 +33,9 @@ const rooms = [
 ];
 
 /**
- * A dummy function that returns a room status based on the selected date.
- * In a real application, you might fetch this data from an API.
+ * A function to get room status based on selected date.
  */
-const getRoomStatusForDate = (room: any, date: Date | undefined) => {
+const getRoomStatusForDate = (room: Room, date: Date | undefined) => {
   if (!date) return room.status;
   const day = date.getDate();
   if (day % 3 === 0) return "booked";
@@ -48,19 +44,22 @@ const getRoomStatusForDate = (room: any, date: Date | undefined) => {
 };
 
 const Dashboard = () => {
-  const [selectedProperty, setSelectedProperty] = useState(properties[0]);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(
+    null
+  );
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<any>(null);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [date, setDate] = React.useState<DateRange | undefined>({
+  const [date, setDate] = useState<DateRange | undefined>({
     from: new Date(2022, 0, 20),
     to: addDays(new Date(2022, 0, 20), 20),
   });
+
   const [monthlyRevenue, setMonthlyRevenue] = useState(0);
   const [bookingCount, setBookingCount] = useState(0);
-
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   const {
@@ -70,12 +69,35 @@ const Dashboard = () => {
     formState: { errors },
   } = useForm();
 
-  const handlePropertySelect = (property: {
-    id: number;
-    name: string;
-    image: string;
-  }) => {
-    setSelectedProperty(property);
+  useEffect(() => {
+    const fetchProperties = async () => {
+      const response = await httpRequest(API_ROUTES.ListProperties);
+      if (response.success !== false) {
+        setProperties(response.data);
+        const propertiesResponse = await httpRequest(
+          `properties/${response.data[0].id}`
+        );
+        if (propertiesResponse.success !== false) {
+          setSelectedProperty(propertiesResponse.data);
+        } else {
+          console.error(propertiesResponse.message, propertiesResponse.error);
+        }
+      } else {
+        console.error(response.message, response.error);
+      }
+    };
+
+    fetchProperties();
+  }, [setValue]); // Ensure setValue is in dependencies
+
+  // FIX: Made this function async
+  const handlePropertySelect = async (property: Property) => {
+    const propertiesResponse = await httpRequest(`properties/${property.id}`);
+    if (propertiesResponse.success !== false) {
+      setSelectedProperty(propertiesResponse.data);
+    } else {
+      console.error(propertiesResponse.message, propertiesResponse.error);
+    }
     setIsDropdownOpen(false);
   };
 
@@ -88,60 +110,62 @@ const Dashboard = () => {
     console.log("Form Data:", data);
     setIsModalOpen(false);
   };
-  const handleRoomClick = (room: any) => {
+  const handleRoomClick = (room: Room) => {
     setSelectedRoom(room);
     setIsModalOpen(true);
   };
 
   const handleBookingSubmit = (data: any) => {
-    console.log("Form Data:", data);
+    console.log("Booking Data:", data);
     setIsModalOpen(false);
     setIsSuccessModalOpen(true);
 
-    setMonthlyRevenue((prevRevenue) => prevRevenue + 100); // Assuming $100 per booking
-    setBookingCount((prevCount) => prevCount + 1);
+    setMonthlyRevenue((prev) => prev + 100);
+    setBookingCount((prev) => prev + 1);
   };
 
   return (
-    <div className="container mx-auto px-4  space-y-4">
+    <div className="container mx-auto px-4 space-y-4">
       <div className="container mx-auto px-4 py-2">
         <div className="relative">
           <button
             className="flex items-center space-x-3 bg-white border rounded-lg px-4 py-2 w-full md:w-72 focus:outline-none focus:ring-2 focus:ring-blue-500"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
-            <img
-              src={selectedProperty.image}
-              alt={selectedProperty.name}
-              className="w-8 h-8 rounded-full object-cover"
-            />
-            <span className="flex-1 text-left">{selectedProperty.name}</span>
-          </button>
-          <div
-            className={`absolute top-full left-0 w-full md:w-72 mt-2 bg-white rounded-lg shadow-lg z-10 transition-all duration-200 transform ${
-              isDropdownOpen
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 -translate-y-2 pointer-events-none"
-            }`}
-          >
-            {properties.map((property) => (
-              <button
-                key={property.id}
-                className="flex items-center space-x-3 w-full px-4 py-3 hover:bg-gray-50 transition-colors"
-                onClick={() => handlePropertySelect(property)}
-              >
+            {selectedProperty && (
+              <>
                 <img
-                  src={property.image}
-                  alt={property.name}
+                  src={selectedProperty.image}
+                  alt={selectedProperty.name}
                   className="w-8 h-8 rounded-full object-cover"
                 />
-                <span>{property.name}</span>
-              </button>
-            ))}
-          </div>
+                <span className="flex-1 text-left">
+                  {selectedProperty.name}
+                </span>
+              </>
+            )}
+          </button>
+          {isDropdownOpen && (
+            <div className="absolute top-full left-0 w-full md:w-72 mt-2 bg-white rounded-lg shadow-lg z-10">
+              {properties.map((property) => (
+                <button
+                  key={property.id}
+                  className="flex items-center space-x-3 w-full px-4 py-3 hover:bg-gray-50 transition-colors"
+                  onClick={() => handlePropertySelect(property)}
+                >
+                  <img
+                    src={property.image}
+                    alt={property.name}
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                  <span>{property.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-      <div className="flex gap-4  ">
+      <div className="flex gap-4">
         <div className="bg-white p-6 rounded-lg shadow-md w-full">
           <h2 className="text-xl font-semibold mb-2">Monthly Revenue</h2>
           <p className="text-3xl font-bold">
@@ -153,8 +177,7 @@ const Dashboard = () => {
           <p className="text-3xl font-bold">{bookingCount}</p>
         </div>
       </div>
-
-      <div className=" mx-auto max-w-4xl">
+      <div className="mx-auto max-w-4xl">
         <Calendar
           mode="single"
           selected={selectedDate}
@@ -170,9 +193,8 @@ const Dashboard = () => {
               ? "bg-green-100 hover:bg-green-200"
               : status === "booked"
               ? "bg-gray-200 hover:bg-gray-300"
-              : status === "pending"
-              ? "bg-amber-100 hover:bg-amber-200"
-              : "";
+              : "bg-amber-100 hover:bg-amber-200";
+
           return (
             <div
               key={room.id}
@@ -190,7 +212,6 @@ const Dashboard = () => {
           );
         })}
       </div>
-
       {/* Modal for booking a room */}
       {isModalOpen && (
         <BookingModal
