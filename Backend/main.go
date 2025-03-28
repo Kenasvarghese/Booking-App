@@ -6,17 +6,22 @@ import (
 
 	"github.com/Kenasvarghese/Booking-App/Backend/config"
 	"github.com/Kenasvarghese/Booking-App/Backend/database"
+	
 	propertiesHandler "github.com/Kenasvarghese/Booking-App/Backend/properties/handler"
-	propertiesRepo "github.com/Kenasvarghese/Booking-App/Backend/properties/repo"
 	propertiesUsecase "github.com/Kenasvarghese/Booking-App/Backend/properties/usecase"
-	"github.com/rs/cors"
-
+	propertiesRepo "github.com/Kenasvarghese/Booking-App/Backend/properties/repo"
+	
 	roomsHandler "github.com/Kenasvarghese/Booking-App/Backend/rooms/handler"
-	roomsRepo "github.com/Kenasvarghese/Booking-App/Backend/rooms/repo"
 	roomsUsecase "github.com/Kenasvarghese/Booking-App/Backend/rooms/usecase"
-
+	roomsRepo "github.com/Kenasvarghese/Booking-App/Backend/rooms/repo"
+	
+	bookingsHandler "github.com/Kenasvarghese/Booking-App/Backend/bookings/handler"
+	bookingsUsecase "github.com/Kenasvarghese/Booking-App/Backend/bookings/usecase"
+	bookingsRepo "github.com/Kenasvarghese/Booking-App/Backend/bookings/repo"
+	
 	userHandler "github.com/Kenasvarghese/Booking-App/Backend/users/handler"
-
+	
+	"github.com/rs/cors"
 	"github.com/gorilla/mux"
 )
 
@@ -35,7 +40,7 @@ func main() {
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.ServerPort),
-		Handler: corsHandler.Handler(r), 
+		Handler: corsHandler.Handler(r),
 	}
 	println("server started")
 	server.ListenAndServe()
@@ -49,5 +54,11 @@ func privateRoutes(r *mux.Router, db database.DB) {
 	rRepo := roomsRepo.NewRoomsRepo(db)
 	rUsecase := roomsUsecase.NewRoomUsecase(rRepo)
 	roomsHandler.NewRoomsHandler(r, rUsecase)
+
+	bookingsRepo := bookingsRepo.NewBookingRepo(db)
+	bookingsUsecase := bookingsUsecase.NewBookingsUsecase(bookingsRepo)
+	bookingsHandler.NewBookingHandler(r, bookingsUsecase)
+
 	userHandler.NewUserHandler(r)
+
 }
