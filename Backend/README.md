@@ -16,7 +16,7 @@ Go to the project directory
 Run postgres instance
 
 ```bash
-  docker compose up
+  docker compose up -d
 ```
 
 Run migration

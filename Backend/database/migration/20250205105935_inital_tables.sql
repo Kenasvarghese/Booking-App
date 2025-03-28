@@ -26,11 +26,16 @@ CREATE TABLE rooms(
     property_id INTEGER REFERENCES properties(id) ON DELETE CASCADE 
 );
 
+CREATE TYPE booking_status AS ENUM ('BOOKED', 'PENDING', 'CANCELED');
+
 CREATE TABLE bookings(
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    room_id INTEGER REFERENCES rooms(id) ON DELETE CASCADE,
-    booked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ,
-    booked_for DATE
+    room_id INTEGER REFERENCES rooms(id),
+    booked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER REFERENCES users(id),
+    check_in DATE,
+    check_out DATE,
+    status booking_status
 );
 
 
@@ -43,6 +48,8 @@ BEGIN;
 
 
 DROP TABLE IF EXISTS bookings;
+
+DROP TYPE IF EXISTS booking_status;
 
 DROP TABLE IF EXISTS rooms;
 
