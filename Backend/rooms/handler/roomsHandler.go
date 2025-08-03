@@ -24,15 +24,15 @@ func NewRoomsHandler(r *mux.Router, roomsUsecase domain.RoomsUsecase) {
 }
 
 func (h *roomsHandler) ListRooms(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("property-id")
+	id := r.URL.Query().Get("property_id")
 	if id == "" {
-		utils.ApiErrorResponse(w, http.StatusBadRequest, "property-id missing")
+		utils.ApiErrorResponse(w, http.StatusBadRequest, "property_id missing")
 		return
 	}
 	propertIDs := make([]uint64, 0)
 	propertyID, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
-		utils.ApiErrorResponse(w, http.StatusBadRequest, "property-id not an integer")
+		utils.ApiErrorResponse(w, http.StatusBadRequest, "property_id not an integer")
 		return
 	}
 	propertIDs = append(propertIDs, propertyID)

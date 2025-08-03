@@ -16,7 +16,7 @@ services:
     ports:
       - 6004:5432
     env_file:
-      - .env
+      - .env.sample
     healthcheck:
       test: ["CMD", "pg_isready", "-d", "${DB_NAME}", "-U", "${DB_USER}"]
       start_period: 10s

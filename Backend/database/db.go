@@ -27,7 +27,7 @@ func LoadDB(cfg *config.Config) DB {
 	newDBConfig.config = fmt.Sprintf(`host=%s port=%d dbname=%s password=%s user=%s sslmode=%s search_path=%s pool_max_conns=%d pool_min_conns=%d pool_max_conn_idle_time=%s`, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBPassword, cfg.DBUser, cfg.SSLMode, cfg.SearchPath, cfg.PoolMaxConns, cfg.PoolMinConns, cfg.PoolMaxConnIdleTime)
 	db, err := newDBConfig.NewDBConnection(cfg)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("db connection failed: %w",err))
 	}
 	return db
 }
