@@ -19,6 +19,9 @@ type Config struct {
 	PoolMaxConns        int    `required:"true" split_words:"true"`
 	PoolMinConns        int    `required:"true" split_words:"true"`
 	PoolMaxConnIdleTime string `required:"true" split_words:"true"`
+	ClientID            string `required:"true" split_words:"true"`
+	ClientSecret        string `required:"true" split_words:"true"`
+	RedirectURL         string `required:"true" split_words:"true"`
 }
 
 func LoadConfig() *Config {

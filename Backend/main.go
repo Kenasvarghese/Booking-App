@@ -4,25 +4,28 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Kenasvarghese/Booking-App/Backend/auth"
 	"github.com/Kenasvarghese/Booking-App/Backend/config"
 	"github.com/Kenasvarghese/Booking-App/Backend/database"
-	
+
 	propertiesHandler "github.com/Kenasvarghese/Booking-App/Backend/properties/handler"
-	propertiesUsecase "github.com/Kenasvarghese/Booking-App/Backend/properties/usecase"
 	propertiesRepo "github.com/Kenasvarghese/Booking-App/Backend/properties/repo"
-	
+	propertiesUsecase "github.com/Kenasvarghese/Booking-App/Backend/properties/usecase"
+
 	roomsHandler "github.com/Kenasvarghese/Booking-App/Backend/rooms/handler"
-	roomsUsecase "github.com/Kenasvarghese/Booking-App/Backend/rooms/usecase"
 	roomsRepo "github.com/Kenasvarghese/Booking-App/Backend/rooms/repo"
-	
+	roomsUsecase "github.com/Kenasvarghese/Booking-App/Backend/rooms/usecase"
+
 	bookingsHandler "github.com/Kenasvarghese/Booking-App/Backend/bookings/handler"
-	bookingsUsecase "github.com/Kenasvarghese/Booking-App/Backend/bookings/usecase"
 	bookingsRepo "github.com/Kenasvarghese/Booking-App/Backend/bookings/repo"
-	
+	bookingsUsecase "github.com/Kenasvarghese/Booking-App/Backend/bookings/usecase"
+
+	ssoHandler "github.com/Kenasvarghese/Booking-App/Backend/sso/handler"
+
 	userHandler "github.com/Kenasvarghese/Booking-App/Backend/users/handler"
-	
-	"github.com/rs/cors"
+
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -30,7 +33,13 @@ func main() {
 	db := database.LoadDB(cfg)
 	r := mux.NewRouter()
 	apiRouter := r.PathPrefix("/" + cfg.BasePath).Subrouter()
-	privateRoutes(apiRouter, db)
+	authConfig := auth.NewSSOConfig(
+		auth.WithClientID(cfg.ClientID),
+		auth.WithClientSecret(cfg.ClientSecret),
+		auth.WithRedirectURL(cfg.RedirectURL),
+	)
+	authProvider := auth.NewAuthProvider(authConfig)
+	privateRoutes(apiRouter, db, authProvider)
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -46,7 +55,7 @@ func main() {
 	server.ListenAndServe()
 
 }
-func privateRoutes(r *mux.Router, db database.DB) {
+func privateRoutes(r *mux.Router, db database.DB, authProvider auth.AuthProvider) {
 	pRepo := propertiesRepo.NewPropertiesRepo(db)
 	pUsecase := propertiesUsecase.NewPropertiesUsecaseHandler(pRepo)
 	propertiesHandler.NewPropertiesHandler(r, pUsecase)
@@ -59,6 +68,7 @@ func privateRoutes(r *mux.Router, db database.DB) {
 	bookingsUsecase := bookingsUsecase.NewBookingsUsecase(bookingsRepo)
 	bookingsHandler.NewBookingHandler(r, bookingsUsecase)
 
+	ssoHandler.NewSSOHandler(r, authProvider)
 	userHandler.NewUserHandler(r)
 
 }
